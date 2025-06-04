@@ -24,7 +24,7 @@ public class StorageService {
         this.s3Client = s3Client;
     }
 
-    public void uploadFile(String key, String filePath, InputStream inputStream) {
+    public void uploadFile(String key, String filePath) {
         File file = new File(filePath);
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)

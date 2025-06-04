@@ -24,7 +24,7 @@ public class StorageController {
     public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         Path tempFile = Files.createTempFile("upload-", file.getOriginalFilename());
         file.transferTo(tempFile.toFile());
-        storageService.uploadFile(file.getOriginalFilename(), tempFile.toString(), inputStream);
+        storageService.uploadFile(file.getOriginalFilename(), tempFile.toString());
         return "File uploaded successfully.";
     }
 
