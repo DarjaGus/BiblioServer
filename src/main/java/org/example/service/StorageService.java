@@ -1,33 +1,46 @@
 package org.example.service;
 
-import com.yandex.cloud.sdk.storage.Storage;
-import com.yandex.cloud.sdk.storage.StorageFactory;
-import com.yandex.cloud.sdk.storage.StorageOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+import java.io.File;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 @Service
 public class StorageService {
 
-    private final Storage storage;
+    private final S3Client s3Client;
 
-    public StorageService(@Value("${yandex.cloud.storage.endpoint}") String endpoint,
-                          @Value("${yandex.cloud.storage.access-key}") String accessKey,
-                          @Value("${yandex.cloud.storage.secret-key}") String secretKey) {
-        StorageOptions options = StorageOptions.newBuilder()
-                .setEndpoint(endpoint)
-                .setCredentialsProvider(() -> accessKey, secretKey)
+    @Value("${yandex.cloud.storage.bucket-name}")
+    private String bucketName;
+
+    public StorageService(S3Client s3Client) {
+        this.s3Client = s3Client;
+    }
+
+    public void uploadFile(String key, String filePath, InputStream inputStream) {
+        File file = new File(filePath);
+        PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
                 .build();
-        this.storage = StorageFactory.create(options);
+        s3Client.putObject(request, RequestBody.fromFile(file));
+        System.out.println("File uploaded successfully.");
     }
 
-    public void uploadFile(String bucketName, String objectName, InputStream inputStream) {
-        storage.bucket(bucketName).object(objectName).put(inputStream);
-    }
-
-    public InputStream downloadFile(String bucketName, String objectName) {
-        return storage.bucket(bucketName).object(objectName).get();
+    public InputStream downloadFile(String key, String downloadPath) {
+        GetObjectRequest getRequest = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(key)
+                .build();
+        s3Client.getObject(getRequest, ResponseTransformer.toFile(Path.of(downloadPath)));
+        System.out.println("File downloaded successfully.");
+        return null;
     }
 }

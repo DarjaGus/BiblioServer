@@ -20,7 +20,7 @@ public class FileController {
 
     @PostMapping("/upload")
     public void uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        String bucketName = "your-bucket-name";
+        String bucketName = "biblio-busket";
         String objectName = file.getOriginalFilename();
         InputStream inputStream = file.getInputStream();
         storageService.uploadFile(bucketName, objectName, inputStream);
@@ -28,7 +28,7 @@ public class FileController {
 
     @GetMapping("/download")
     public ResponseEntity<InputStreamResource> downloadFile(@RequestParam("fileName") String fileName) throws IOException {
-        String bucketName = "your-bucket-name";
+        String bucketName = "biblio-busket";
         InputStream fileStream = storageService.downloadFile(bucketName, fileName);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
