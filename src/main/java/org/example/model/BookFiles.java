@@ -1,9 +1,9 @@
-package org.example.entity;
+package org.example.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Entity
-public class BookFile {
+public class BookFiles {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

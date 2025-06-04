@@ -1,16 +1,17 @@
-package org.example.entity;
+package org.example.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
-public class Genre {
+public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+    private String biography;
 
-    @ManyToMany(mappedBy = "genres")
+    @ManyToMany(mappedBy = "authors")
     private Set<Book> books;
 
     public Long getId() {
@@ -27,6 +28,14 @@ public class Genre {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getBiography() {
+        return biography;
+    }
+
+    public void setBiography(String biography) {
+        this.biography = biography;
     }
 
     public Set<Book> getBooks() {

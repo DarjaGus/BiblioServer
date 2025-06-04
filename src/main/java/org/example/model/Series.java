@@ -1,6 +1,6 @@
-package org.example.entity;
+package org.example.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity

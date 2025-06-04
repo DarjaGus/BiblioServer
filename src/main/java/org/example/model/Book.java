@@ -1,26 +1,24 @@
-package org.example.entity;
+package org.example.model;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Set;
 
 @Entity
 public class Book {
     @Id
-    @GeneratedValue(strategy =  GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String title;
-    private Integer publicationYear;
     private String description;
+    private Integer publicationYear;
 
     @ManyToOne
-    @JoinColumn(name = "original_language_id")
-    private Language originalLanguage;
+    @JoinColumn(name = "language_id")
+    private Language language;
 
     @ManyToOne
     @JoinColumn(name = "series_id")
     private Series series;
-
-    private Integer seriesNumber;
 
     @ManyToMany
     @JoinTable(
@@ -38,9 +36,6 @@ public class Book {
     )
     private Set<Genre> genres;
 
-    @OneToMany(mappedBy = "book")
-    private Set<BookFile> files;
-
     public Long getId() {
         return id;
     }
@@ -57,14 +52,6 @@ public class Book {
         this.title = title;
     }
 
-    public Integer getPublicationYear() {
-        return publicationYear;
-    }
-
-    public void setPublicationYear(Integer publicationYear) {
-        this.publicationYear = publicationYear;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -73,12 +60,20 @@ public class Book {
         this.description = description;
     }
 
-    public Language getOriginalLanguage() {
-        return originalLanguage;
+    public Integer getPublicationYear() {
+        return publicationYear;
     }
 
-    public void setOriginalLanguage(Language originalLanguage) {
-        this.originalLanguage = originalLanguage;
+    public void setPublicationYear(Integer publicationYear) {
+        this.publicationYear = publicationYear;
+    }
+
+    public Language getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(Language language) {
+        this.language = language;
     }
 
     public Series getSeries() {
@@ -87,14 +82,6 @@ public class Book {
 
     public void setSeries(Series series) {
         this.series = series;
-    }
-
-    public Integer getSeriesNumber() {
-        return seriesNumber;
-    }
-
-    public void setSeriesNumber(Integer seriesNumber) {
-        this.seriesNumber = seriesNumber;
     }
 
     public Set<Author> getAuthors() {
@@ -111,13 +98,5 @@ public class Book {
 
     public void setGenres(Set<Genre> genres) {
         this.genres = genres;
-    }
-
-    public Set<BookFile> getFiles() {
-        return files;
-    }
-
-    public void setFiles(Set<BookFile> files) {
-        this.files = files;
     }
 }
