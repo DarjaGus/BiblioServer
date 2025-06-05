@@ -1,59 +1,72 @@
 package org.example.api;
 
+import org.example.model.Book;
+import org.example.model.BookFiles;
+import org.example.service.BookFileService;
 import org.example.service.StorageService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.List;
 
 @RestController
-@RequestMapping("/files")
+@RequestMapping("/api/files")
 public class FileController {
 
-    private final StorageService storageService;
+    @Autowired
+    private BookFileService bookFileService;
 
     @Autowired
-    public FileController(StorageService storageService) {
-        this.storageService = storageService;
+    private StorageService storageService;
+
+    @GetMapping
+    public List<BookFiles> getAllBookFiles() {
+        return bookFileService.findAllBookFiles();
+    }
+
+    @GetMapping("/{id}")
+    public BookFiles getBookFileById(@PathVariable Long id) {
+        return bookFileService.findBookFileById(id);
     }
 
     @PostMapping("/upload")
-    public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> uploadBookFile(@RequestParam("file") MultipartFile file, @RequestParam("bookId") Long bookId) {
         try {
-            Path tempFile = Files.createTempFile("upload-", file.getOriginalFilename());
-            file.transferTo(tempFile.toFile());
-            storageService.uploadFile(file.getOriginalFilename(), tempFile.toString());
-            return ResponseEntity.ok("File uploaded successfully.");
+            String filePath = storageService.storeFile(file);
+            BookFiles bookFile = new BookFiles();
+            bookFile.setFileType(file.getContentType());
+            bookFile.setFilePath(filePath);
+            bookFile.setBook(new Book());
+            bookFile.getBook().setId(bookId);
+            bookFileService.saveBookFile(bookFile);
+            return ResponseEntity.ok("File uploaded successfully: " + filePath);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body("Failed to upload file: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
         }
     }
 
-    @GetMapping("/download/{fileName}")
-    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable String fileName) {
+    @GetMapping("/download/{id}")
+    public ResponseEntity<byte[]> downloadBookFile(@PathVariable Long id) {
         try {
-            Path tempFile = Files.createTempFile("download-", fileName);
-            storageService.downloadFile(fileName, tempFile.toString());
-
-            File file = tempFile.toFile();
-            InputStreamResource resource = new InputStreamResource(new FileInputStream(file));
-
+            BookFiles bookFile = bookFileService.findBookFileById(id);
+            byte[] fileData = storageService.loadFile(bookFile.getFilePath());
             return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileName)
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + bookFile.getFilePath() + "\"")
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .contentLength(file.length())
-                    .body(resource);
+                    .body(fileData);
         } catch (IOException e) {
-            return ResponseEntity.status(500).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteBookFile(@PathVariable Long id) {
+        bookFileService.deleteBookFile(id);
     }
 }
