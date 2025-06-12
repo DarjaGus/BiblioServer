@@ -1,7 +1,11 @@
 package org.example.repository;
 
-import org.example.model.BookFiles;
+import org.example.model.BookFile;
+import org.example.model.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface BookFileRepository extends JpaRepository<BookFiles, Long> {
+import java.util.List;
+
+public interface BookFileRepository extends JpaRepository<BookFile, Integer> {
+    List<BookFile> findByBookFileNameContainingIgnoreCase(String bookFileName);
 }

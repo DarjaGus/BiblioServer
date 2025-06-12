@@ -1,72 +1,69 @@
 package org.example.api;
 
-import org.example.model.Book;
-import org.example.model.BookFiles;
+import jakarta.validation.Valid;
+import org.example.model.BookFile;
 import org.example.service.BookFileService;
-import org.example.service.StorageService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/files")
 public class FileController {
 
-    @Autowired
-    private BookFileService bookFileService;
+    private static final Logger logger = LoggerFactory.getLogger(FileController.class);
+
+    private final BookFileService bookFileService;
 
     @Autowired
-    private StorageService storageService;
+    public FileController(BookFileService bookFileService) {
+        this.bookFileService = bookFileService;
+    }
 
     @GetMapping
-    public List<BookFiles> getAllBookFiles() {
-        return bookFileService.findAllBookFiles();
+    public ResponseEntity<List<BookFile>> getAllBookFile() {
+        logger.info("GET request to fetch all files");
+        List<BookFile> bookFiles = bookFileService.getAllBookFile();
+        return new ResponseEntity<>(bookFiles, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public BookFiles getBookFileById(@PathVariable Long id) {
-        return bookFileService.findBookFileById(id);
+    public ResponseEntity<BookFile> getBookFileById(@PathVariable Integer id) {
+        logger.info("GET request to fetch file with id: {}", id);
+        BookFile bookFile = bookFileService.getBookFileById(id);
+        return new ResponseEntity<>(bookFile, HttpStatus.OK);
     }
 
-    @PostMapping("/upload")
-    public ResponseEntity<String> uploadBookFile(@RequestParam("file") MultipartFile file, @RequestParam("bookId") Long bookId) {
-        try {
-            String filePath = storageService.storeFile(file);
-            BookFiles bookFile = new BookFiles();
-            bookFile.setFileType(file.getContentType());
-            bookFile.setFilePath(filePath);
-            bookFile.setBook(new Book());
-            bookFile.getBook().setId(bookId);
-            bookFileService.saveBookFile(bookFile);
-            return ResponseEntity.ok("File uploaded successfully: " + filePath);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload file");
-        }
+    @PostMapping
+    public ResponseEntity<BookFile> createBookFile(@Valid @RequestBody BookFile bookFile) {
+        logger.info("POST request to create genre: {}", bookFile.getFilePath());
+        BookFile savedBookFile = bookFileService.saveBookFile(bookFile);
+        return new ResponseEntity<>(savedBookFile, HttpStatus.CREATED);
     }
 
-    @GetMapping("/download/{id}")
-    public ResponseEntity<byte[]> downloadBookFile(@PathVariable Long id) {
-        try {
-            BookFiles bookFile = bookFileService.findBookFileById(id);
-            byte[] fileData = storageService.loadFile(bookFile.getFilePath());
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + bookFile.getFilePath() + "\"")
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(fileData);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    @PutMapping("/{id}")
+    public ResponseEntity<BookFile> updateBookFile(@PathVariable Integer id, @Valid @RequestBody BookFile bookFileDetails) {
+        logger.info("PUT request to update file with id: {}", id);
+        BookFile updatedBookFile = bookFileService.updateBookFile(id, bookFileDetails);
+        return new ResponseEntity<>(updatedBookFile, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBookFile(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteBookFile(@PathVariable Integer id) {
+        logger.info("DELETE request to delete file with id: {}", id);
         bookFileService.deleteBookFile(id);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<BookFile>> searchBookFile(@RequestParam String name) {
+        logger.info("GET request to search file by name: {}", name);
+        List<BookFile> bookFiles = bookFileService.findByBookFileName(name);
+        return new ResponseEntity<>(bookFiles, HttpStatus.OK);
     }
 }

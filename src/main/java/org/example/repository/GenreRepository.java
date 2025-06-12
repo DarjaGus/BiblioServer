@@ -3,5 +3,8 @@ package org.example.repository;
 import org.example.model.Genre;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface GenreRepository extends JpaRepository<Genre, Long> {
+import java.util.List;
+
+public interface GenreRepository extends JpaRepository<Genre, Integer> {
+    List<Genre> findByGenreNameContainingIgnoreCase(String genreName);
 }

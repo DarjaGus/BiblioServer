@@ -3,5 +3,8 @@ package org.example.repository;
 import org.example.model.Language;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface LanguageRepository extends JpaRepository<Language, Long> {
+import java.util.List;
+
+public interface LanguageRepository extends JpaRepository<Language, Integer> {
+    List<Language> findByLanguageNameContainingIgnoreCase(String languageName);
 }

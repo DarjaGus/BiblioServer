@@ -1,48 +1,24 @@
 package org.example.model;
 
 import jakarta.persistence.*;
-import java.util.Set;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
 
 @Entity
+@Table(name = "Authors")
+@Data
 public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
+    @Column(name = "author_id")
+    private Integer authorId;
+
+    @NotBlank(message = "Author name is required")
+    @Size(max = 100, message = "Author name cannot be longer than 100 characters")
+    @Column(name = "author_name", nullable = false)
+    private String authorName;
+
+    @Column(name = "biography", columnDefinition = "TEXT") // Используем TEXT для больших биографий
     private String biography;
-
-    @ManyToMany(mappedBy = "authors")
-    private Set<Book> books;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getBiography() {
-        return biography;
-    }
-
-    public void setBiography(String biography) {
-        this.biography = biography;
-    }
-
-    public Set<Book> getBooks() {
-        return books;
-    }
-
-    public void setBooks(Set<Book> books) {
-        this.books = books;
-    }
 }
